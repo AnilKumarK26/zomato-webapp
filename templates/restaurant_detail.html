@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}{{ restaurant['Restaurant Name'] }} - Zomato{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item active">{{ restaurant['Restaurant Name'] }}</li>
+            </ol>
+        </nav>
+        
+        <h2 class="card-title mb-4">{{ restaurant['Restaurant Name'] }}</h2>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="mb-4">
+                    {% for cuisine in restaurant['Cuisines'] %}
+                    <span class="cuisine-tag">{{ cuisine }}</span>
+                    {% endfor %}
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Rating and Reviews</h5>
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="rating-badge me-3">
+                                {{ restaurant['Aggregate rating'] }} ⭐
+                            </span>
+                            <span class="text-muted">
+                                Based on {{ restaurant['Votes'] }} reviews
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Details</h5>
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <th scope="row">Average Cost for Two</th>
+                                    <td>{{ restaurant['Average Cost for two'] }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Price Range</th>
+                                    <td>{{ "₹" * restaurant['Price range'] }}</td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Online Delivery</th>
+                                    <td>
+                                        {% if restaurant['Has Online delivery'] %}
+                                        <span class="badge bg-success">Available</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Not Available</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Table Booking</th>
+                                    <td>
+                                        {% if restaurant['Has Table booking'] %}
+                                        <span class="badge bg-success">Available</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Not Available</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Location</h5>
+                        <p class="card-text">{{ restaurant['Address'] }}</p>
+                        <div id="map" style="height: 300px;" class="mb-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function initMap() {
+    const location = {
+        lat: {{ restaurant.location.coordinates[1] }},
+        lng: {{ restaurant.location.coordinates[0] }}
+    };
+    const map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 15,
+        center: location,
+    });
+    new google.maps.Marker({
+        position: location,
+        map: map,
+        title: '{{ restaurant["Restaurant Name"] }}'
+    });
+}
+</script>
+<script async defer
+    src="https://maps.gomaps.pro/maps/api/js?key={{ google_maps_api_key }}&callback=initMap">
+</script>
+{% endblock %}

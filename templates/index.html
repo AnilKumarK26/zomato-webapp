@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Zomato - Restaurant Listings{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2 class="mb-0">Restaurant Listings</h2>
+    </div>
+    <div class="col-md-6">
+        <form class="d-flex search-form" method="GET">
+            <div class="input-group">
+                <span class="input-group-text bg-transparent border-danger">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-danger">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </span>
+                <input type="text" name="search" class="form-control" placeholder="Search restaurants..." value="{{ request.args.get('search', '') }}">
+                <button class="btn btn-danger" type="submit">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card mb-4 filter-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="me-2 text-danger">
+                        <line x1="4" y1="21" x2="4" y2="14"></line>
+                        <line x1="4" y1="10" x2="4" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12" y2="3"></line>
+                        <line x1="20" y1="21" x2="20" y2="16"></line>
+                        <line x1="20" y1="12" x2="20" y2="3"></line>
+                        <line x1="1" y1="14" x2="7" y2="14"></line>
+                        <line x1="9" y1="8" x2="15" y2="8"></line>
+                        <line x1="17" y1="16" x2="23" y2="16"></line>
+                    </svg>
+                    Filters
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" id="filterForm">
+                    <div class="mb-3">
+                        <label class="form-label">Country</label>
+                        <select name="country" class="form-select">
+                            <option value="">All Countries</option>
+                            {% for country in countries %}
+                            <option value="{{ country['Country Code'] }}" 
+                                    {% if request.args.get('country')|string == country['Country Code']|string %}selected{% endif %}>
+                                {{ country['Country'] }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Cuisines</label>
+                        <select name="cuisines" class="form-select">
+                            <option value="">All Cuisines</option>
+                            {% for cuisine in unique_cuisines %}
+                            <option value="{{ cuisine }}" 
+                                    {% if request.args.getlist('cuisines') and cuisine in request.args.getlist('cuisines') %}selected{% endif %}>
+                                {{ cuisine }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100">Apply Filters</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for restaurant in restaurants %}
+            <div class="col">
+                <div class="card h-100 restaurant-card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ restaurant['Restaurant Name'] }}</h5>
+                        <div class="mb-2">
+                            {% for cuisine in restaurant['Cuisines'] %}
+                            <span class="cuisine-tag">{{ cuisine }}</span>
+                            {% endfor %}
+                        </div>
+                        <p class="card-text">
+                            <span class="rating-badge">
+                                {{ restaurant['Aggregate rating'] }} ⭐
+                            </span>
+                            <small class="text-muted ms-2">
+                                ({{ restaurant['Votes'] }} votes)
+                            </small>
+                        </p>
+                        
+                        <p class="card-text">
+                            <small class="text-muted">
+                                💰 Average cost for two: {{ restaurant['Currency'] }} {{ restaurant['Average Cost for two'] }}
+                            </small>
+                        </p>
+                        <a href="{{ url_for('restaurant_detail', restaurant_id=restaurant._id) }}" 
+                           class="btn btn-outline-danger w-100 mt-2">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if total_pages > 1 %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if current_page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ current_page - 1 }}&{{ request.query_string.decode() | replace('page=' ~ current_page, '') }}">&laquo; Previous</a>
+                </li>
+                {% endif %}
+
+                {% for page in pagination_range %}
+                    {% if page == '...' %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% else %}
+                        <li class="page-item {% if page == current_page %}active{% endif %}">
+                            <a class="page-link" href="?page={{ page }}&{{ request.query_string.decode() | replace('page=' ~ current_page, '') }}">{{ page }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if current_page < total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ current_page + 1 }}&{{ request.query_string.decode() | replace('page=' ~ current_page, '') }}">Next &raquo;</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .search-form .input-group {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .search-form .input-group-text {
+        border-right: none;
+    }
+
+    .search-form .form-control {
+        border-left: none;
+    }
+
+    .filter-card {
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .restaurant-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .restaurant-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+
+    .cuisine-tag {
+        background-color: rgba(226, 55, 68, 0.1);
+        color: var(--primary-color);
+        border: 1px solid rgba(226, 55, 68, 0.2);
+    }
+
+    .rating-badge {
+        background: linear-gradient(135deg, #28a745, #20c997);
+    }
+</style>
+{% endblock %}

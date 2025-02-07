@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Search - Zomato{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2>Search Restaurants</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" action="{{ url_for('search') }}">
+                    <div class="mb-3">
+                        <label for="q" class="form-label">Search Query</label>
+                        <input type="text" class="form-control" id="q" name="q" 
+                               value="{{ query }}" placeholder="Search by name, cuisine, or location...">
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="lat" class="form-label">Latitude</label>
+                            <input type="number" step="any" class="form-control" id="lat" name="lat"
+                                   value="{{ request.args.get('lat', '') }}" placeholder="Enter latitude">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="lon" class="form-label">Longitude</label>
+                            <input type="number" step="any" class="form-control" id="lon" name="lon"
+                                   value="{{ request.args.get('lon', '') }}" placeholder="Enter longitude">
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger">Search</button>
+                        <button type="button" onclick="getCurrentLocation()" class="btn btn-outline-primary">
+                            Use My Location
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if restaurants %}
+        <div class="mt-4">
+            <h3>Search Results</h3>
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                {% for restaurant in restaurants %}
+                <div class="col">
+                    <div class="card h-100 restaurant-card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ restaurant['Restaurant Name'] }}</h5>
+                            <div class="mb-2">
+                                {% for cuisine in restaurant['Cuisines'] %}
+                                <span class="cuisine-tag">{{ cuisine }}</span>
+                                {% endfor %}
+                            </div>
+                            <p class="card-text">
+                                <span class="rating-badge">
+                                    {{ restaurant['Aggregate rating'] }} ⭐
+                                </span>
+                                <small class="text-muted ms-2">
+                                    ({{ restaurant['Votes'] }} votes)
+                                </small>
+                            </p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    💰 Average cost for two: {{ restaurant['Average Cost for two'] }}
+                                </small>
+                            </p>
+                            <a href="{{ url_for('restaurant_detail', restaurant_id=restaurant._id) }}" 
+                               class="btn btn-outline-danger w-100">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function getCurrentLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            document.getElementById('lat').value = position.coords.latitude;
+            document.getElementById('lon').value = position.coords.longitude;
+        }, function(error) {
+            alert('Error getting location: ' + error.message);
+        });
+    } else {
+        alert('Geolocation is not supported by this browser.');
+    }
+}
+</script>
+{% endblock %}
