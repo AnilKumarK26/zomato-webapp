@@ -92,8 +92,10 @@ def generate_pagination_range(current_page, total_pages, window=2):
     
     return final_range
 
-@app.route('/')
+@app.route('/', methods=['GET', 'HEAD'])
 def index():
+    if request.method == 'HEAD':
+        return '', 200
     try:
         page = int(request.args.get('page', 1))
         per_page = 9
