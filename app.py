@@ -10,7 +10,6 @@ from PIL import Image
 from dotenv import load_dotenv
 
 load_dotenv()
-port = int(os.getenv('PORT', 10000))
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY', os.urandom(24))
 connection_string = f"mongodb+srv://{os.getenv('MONGODB_USERNAME')}:{os.getenv('MONGODB_PASSWORD')}@{os.getenv('MONGODB_CLUSTER')}.wt5v2.mongodb.net/?retryWrites=true&w=majority&appName={os.getenv('MONGODB_DATABASE')}"
@@ -271,6 +270,7 @@ if __name__ == '__main__':
         restaurant_collection.create_index([("Restaurant Name", "text")])
         print("Created text search index")
     
-        app.run(host='0.0.0.0', port=port)
+        port = int(os.environ.get("PORT", 10000))
+        app.run(host='0.0.0.0', port=port, debug=False)
     except Exception as e:
         print(f"Error during startup: {str(e)}")
