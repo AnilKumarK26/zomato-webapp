@@ -270,7 +270,7 @@ if __name__ == '__main__':
         restaurant_collection.create_index([("Restaurant Name", "text")])
         print("Created text search index")
     
-        port = int(os.environ.get("PORT", 10000))
+        port = int(os.getenv('PORT', 10000))
         app.run(host='0.0.0.0', port=port, debug=False)
     except Exception as e:
         print(f"Error during startup: {str(e)}")
