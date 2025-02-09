@@ -74,6 +74,12 @@
                         {% for restaurant in results.restaurants %}
                         <div class="col">
                             <div class="card h-100 restaurant-card">
+                                {% if restaurant.featured_image %}
+                                <img src="{{ restaurant.featured_image }}" 
+                                     class="card-img-top" 
+                                     alt="{{ restaurant['Restaurant Name'] }}"
+                                     onerror="this.src='/static/default-restaurant.jpg'">
+                                {% endif %}
                                 <div class="card-body">
                                     <h5 class="card-title">{{ restaurant['Restaurant Name'] }}</h5>
                                     <div class="mb-2">
