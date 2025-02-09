@@ -2,6 +2,168 @@
 {% block title %}Search - Zomato{% endblock %}
 
 {% block content %}
+<style>
+/* Main container styling */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+/* Search card styling */
+.card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
+    border-radius: 12px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Form styling */
+.form-control {
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e0e0e0;
+    transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+    border-color: #dc3545;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #424242;
+    margin-bottom: 0.5rem;
+}
+
+/* Button styling */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border: none;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+    transform: translateY(-2px);
+}
+
+.btn-outline-primary {
+    border-color: #0d6efd;
+    color: #0d6efd;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Restaurant card styling */
+.restaurant-card {
+    overflow: hidden;
+}
+
+.restaurant-card .card-img-top {
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.restaurant-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+.restaurant-card .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 1rem;
+}
+
+/* Cuisine tags styling */
+.cuisine-tag {
+    display: inline-block;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    margin: 0.25rem;
+    border: 1px solid #e9ecef;
+}
+
+/* Rating badge styling */
+.rating-badge {
+    background-color: #28a745;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* Search results section */
+.search-results {
+    margin-top: 3rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+    
+    .restaurant-card .card-img-top {
+        height: 160px;
+    }
+    
+    .btn {
+        padding: 0.625rem 1.25rem;
+    }
+}
+
+/* Loading state for location button */
+.btn-outline-primary.loading {
+    position: relative;
+    color: transparent;
+}
+
+.btn-outline-primary.loading::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    margin: -8px 0 0 -8px;
+    border: 2px solid #0d6efd;
+    border-radius: 50%;
+    border-right-color: transparent;
+    animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+</style>
+
 <div class="row mb-4">
     <div class="col-12">
         <h2>Search Restaurants</h2>
@@ -49,6 +211,12 @@
                 {% for restaurant in restaurants %}
                 <div class="col">
                     <div class="card h-100 restaurant-card">
+                        {% if restaurant.featured_image %}
+                        <img src="{{ restaurant.featured_image }}" 
+                            class="card-img-top" 
+                            alt="{{ restaurant['Restaurant Name'] }}"
+                            onerror="this.src='/static/restaurant-ambiance-cover.jpg'">
+                        {% endif %}
                         <div class="card-body">
                             <h5 class="card-title">{{ restaurant['Restaurant Name'] }}</h5>
                             <div class="mb-2">
@@ -80,7 +248,6 @@
         {% endif %}
     </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
