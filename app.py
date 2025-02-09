@@ -1,3 +1,4 @@
+# app.py
 import os
 from werkzeug.utils import secure_filename
 from math import ceil
@@ -17,6 +18,7 @@ client = MongoClient(connection_string)
 db = client[os.getenv('MONGODB_DATABASE')]
 restaurant_collection = db['restaurants']
 countries_collection = db['countries']
+restaurants_json_collection = db['restaurants_json']  # Add this line
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -36,15 +38,21 @@ FOOD_TO_CUISINE_MAPPING = {
     'salad': ['Healthy Food', 'Continental']
 }
 
+def get_restaurant_image(restaurant_name):
+    """Fetch restaurant image from restaurants_json collection"""
+    restaurant_data = restaurants_json_collection.find_one(
+        {'name': restaurant_name},
+        {'featured_image': 1}
+    )
+    return restaurant_data.get('featured_image') if restaurant_data else '/static/default-restaurant.jpg'
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def load_image_classification_model():
-    """Lazy load the TensorFlow image classification model"""
     return tf.keras.applications.MobileNetV2(weights='imagenet')
 
 def process_image(image_path):
-    """Process the image and return detected food items"""
     model = load_image_classification_model()
     
     img = tf.keras.preprocessing.image.load_img(
@@ -75,7 +83,6 @@ def process_image(image_path):
     return food_items
 
 def generate_pagination_range(current_page, total_pages, window=2):
-    """Generate a range of page numbers for pagination"""
     pages = set([1, total_pages])
     
     for i in range(max(1, current_page - window), min(total_pages + 1, current_page + window + 1)):
@@ -92,10 +99,8 @@ def generate_pagination_range(current_page, total_pages, window=2):
     
     return final_range
 
-@app.route('/', methods=['GET', 'HEAD'])
+@app.route('/')
 def index():
-    if request.method == 'HEAD':
-        return '', 200
     try:
         page = int(request.args.get('page', 1))
         per_page = 9
@@ -105,7 +110,6 @@ def index():
         search_query = request.args.get('search')
         cuisines = request.args.getlist('cuisines')
         
-        # Build filter query
         filters = {}
         if country:
             filters['Country Code'] = int(country)
@@ -119,19 +123,16 @@ def index():
         
         page = max(1, min(page, total_pages))
         
-        # Get restaurants with pagination
         restaurants = list(restaurant_collection.find(
             filters
         ).skip((page - 1) * per_page).limit(per_page))
         
-        # Convert ObjectId to string
+        # Add featured image to each restaurant
         for restaurant in restaurants:
             restaurant['_id'] = str(restaurant['_id'])
+            restaurant['featured_image'] = get_restaurant_image(restaurant['Restaurant Name'])
         
-        # Generate pagination range
         pagination_range = generate_pagination_range(page, total_pages)
-        
-        # Get countries for filter
         countries = list(countries_collection.find({}, {'_id': 0}))
         
         return render_template(
@@ -153,7 +154,11 @@ def restaurant_detail(restaurant_id):
         restaurant = restaurant_collection.find_one({'_id': ObjectId(restaurant_id)})
         if restaurant:
             restaurant['_id'] = str(restaurant['_id'])
-            return render_template('restaurant_detail.html', restaurant=restaurant,google_maps_api_key=os.getenv('GOOGLE_MAPS_API_KEY'))
+            # Add featured image
+            restaurant['featured_image'] = get_restaurant_image(restaurant['Restaurant Name'])
+            return render_template('restaurant_detail.html', 
+                                 restaurant=restaurant,
+                                 google_maps_api_key=os.getenv('GOOGLE_MAPS_API_KEY'))
         flash('Restaurant not found')
         return redirect(url_for('index'))
     except Exception as e:
@@ -174,7 +179,6 @@ def search():
         if lat and lon:
             lat, lon = float(lat), float(lon)
             
-            # Validate latitude and longitude ranges
             if not (-90 <= lat <= 90 and -180 <= lon <= 180):
                 flash('Invalid latitude or longitude')
                 return redirect(url_for('search'))
@@ -189,13 +193,14 @@ def search():
                 }
             }
         
-        restaurants = restaurant_collection.find(filters).limit(20)
-        restaurant_list = []
+        restaurants = list(restaurant_collection.find(filters).limit(20))
+        
+        # Add featured image to each restaurant
         for restaurant in restaurants:
             restaurant['_id'] = str(restaurant['_id'])
-            restaurant_list.append(restaurant)
+            restaurant['featured_image'] = get_restaurant_image(restaurant['Restaurant Name'])
         
-        return render_template('search.html', restaurants=restaurant_list, query=query, lat=lat, lon=lon)
+        return render_template('search.html', restaurants=restaurants, query=query, lat=lat, lon=lon)
     except ValueError:
         flash('Latitude and Longitude must be numeric')
         return redirect(url_for('search'))
@@ -221,27 +226,23 @@ def image_search():
             file.save(filepath)
             
             try:
-                # Process the image and get food predictions
                 food_items = process_image(filepath)
                 
-                # Get all possible cuisines from detected foods
                 cuisines = []
                 for food_item in food_items:
                     cuisines.extend(food_item['cuisines'])
                 
-                # Remove duplicates
                 cuisines = list(set(cuisines))
                 
-                # Find restaurants with matching cuisines
                 restaurants = list(restaurant_collection.find({
                     'Cuisines': {'$in': cuisines}
                 }).limit(12))
                 
-                # Format results
+                # Add featured image to each restaurant
                 for restaurant in restaurants:
                     restaurant['_id'] = str(restaurant['_id'])
+                    restaurant['featured_image'] = get_restaurant_image(restaurant['Restaurant Name'])
                 
-                # Clean up uploaded file
                 os.remove(filepath)
                 
                 return render_template('image_search.html', 
@@ -252,7 +253,6 @@ def image_search():
                 flash(f'Error processing image: {str(e)}')
                 return redirect(request.url)
             finally:
-                # Ensure file is cleaned up even if an error occurs
                 if os.path.exists(filepath):
                     os.remove(filepath)
     
@@ -260,19 +260,15 @@ def image_search():
 
 if __name__ == '__main__':
     try:
-        # Test MongoDB connection
         client.admin.command('ping')
         print("Successfully connected to MongoDB Atlas")
         
-        # Create geospatial index
         restaurant_collection.create_index([('location', GEOSPHERE)])
         print("Created geospatial index")
         
-        # Create text index for search
         restaurant_collection.create_index([("Restaurant Name", "text")])
         print("Created text search index")
-    
-        port = int(os.getenv('PORT', 10000))
-        app.run(host='0.0.0.0', port=port, debug=False)
+        
+        app.run(debug=True)
     except Exception as e:
         print(f"Error during startup: {str(e)}")
