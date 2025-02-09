@@ -10,6 +10,14 @@
                 <li class="breadcrumb-item active">{{ restaurant['Restaurant Name'] }}</li>
             </ol>
         </nav>
+        {% if restaurant.featured_image %}
+        <div class="restaurant-image-container">
+            <img src="{{ restaurant.featured_image }}" 
+                 class="restaurant-detail-image" 
+                 alt="{{ restaurant['Restaurant Name'] }}"
+                 onerror="this.src='/static/default-restaurant.jpg'">
+        </div>
+        {% endif %}
         
         <h2 class="card-title mb-4">{{ restaurant['Restaurant Name'] }}</h2>
         
