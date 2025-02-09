@@ -2,6 +2,252 @@
 {% block title %}Zomato - Restaurant Listings{% endblock %}
 
 {% block content %}
+<style>
+    /* Main container and layout */
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    /* Header and search section */
+    .search-form .input-group {
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .search-form .input-group-text {
+        border-right: none;
+        border-color: #dc3545;
+        background-color: white;
+        padding: 0.75rem 1rem;
+    }
+    
+    .search-form .form-control {
+        border-left: none;
+        border-color: #dc3545;
+        padding: 0.75rem 1rem;
+        font-size: 1rem;
+    }
+    
+    .search-form .form-control:focus {
+        box-shadow: none;
+        border-color: #dc3545;
+    }
+    
+    .search-form .btn-danger {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+    
+    /* Filter card styling */
+    .filter-card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 20px;
+    }
+    
+    .filter-card .card-header {
+        background: white;
+        border-bottom: 1px solid rgba(0,0,0,0.1);
+        padding: 1.25rem;
+    }
+    
+    .filter-card .card-header h5 {
+        display: flex;
+        align-items: center;
+        color: #343a40;
+        font-weight: 600;
+    }
+    
+    .filter-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    /* Form controls in filter */
+    .form-label {
+        font-weight: 500;
+        color: #495057;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-select {
+        border-radius: 8px;
+        border-color: #dee2e6;
+        padding: 0.75rem 1rem;
+        transition: all 0.2s ease;
+    }
+    
+    .form-select:focus {
+        border-color: #dc3545;
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+    }
+    
+    /* Restaurant card styling */
+    .restaurant-card {
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .restaurant-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .restaurant-card .card-img-top {
+        height: 200px;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+    
+    .restaurant-card:hover .card-img-top {
+        transform: scale(1.05);
+    }
+    
+    .restaurant-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .restaurant-card .card-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 1rem;
+        height: 3rem;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+    
+    /* Cuisine tags */
+    .cuisine-tag {
+        display: inline-block;
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        margin: 0.25rem;
+        border: 1px solid rgba(220, 53, 69, 0.2);
+        transition: all 0.2s ease;
+    }
+    
+    .cuisine-tag:hover {
+        background-color: rgba(220, 53, 69, 0.15);
+        transform: translateY(-1px);
+    }
+    
+    /* Rating badge */
+    .rating-badge {
+        display: inline-block;
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-weight: 500;
+    }
+    
+    /* Button styling */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .btn-danger {
+        background-color: #dc3545;
+        border: none;
+    }
+    
+    .btn-danger:hover {
+        background-color: #c82333;
+        transform: translateY(-2px);
+    }
+    
+    .btn-outline-danger {
+        border-color: #dc3545;
+        color: #dc3545;
+    }
+    
+    .btn-outline-danger:hover {
+        background-color: #dc3545;
+        color: white;
+        transform: translateY(-2px);
+    }
+    
+    /* Pagination styling */
+    .pagination {
+        margin-top: 2rem;
+    }
+    
+    .page-link {
+        color: #dc3545;
+        border: 1px solid #dee2e6;
+        padding: 0.75rem 1rem;
+        margin: 0 0.25rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+    
+    .page-link:hover {
+        background-color: #dc3545;
+        color: white;
+        border-color: #dc3545;
+    }
+    
+    .page-item.active .page-link {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    
+    .page-item.disabled .page-link {
+        color: #6c757d;
+        background-color: #f8f9fa;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .restaurant-card .card-img-top {
+            height: 160px;
+        }
+        
+        .filter-card {
+            position: static;
+            margin-bottom: 2rem;
+        }
+        
+        .search-form {
+            margin-bottom: 1rem;
+        }
+        
+        .page-link {
+            padding: 0.5rem 0.75rem;
+        }
+    }
+    
+    /* Animation for content loading */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .restaurant-card {
+        animation: fadeIn 0.5s ease-out;
+    }
+</style>
 <div class="row mb-4 align-items-center">
     <div class="col">
         <h2 class="mb-0">Restaurant Listings</h2>
@@ -79,6 +325,12 @@
             {% for restaurant in restaurants %}
             <div class="col">
                 <div class="card h-100 restaurant-card shadow-sm">
+                    {% if restaurant.featured_image %}
+                        <img src="{{ restaurant.featured_image }}" 
+                        class="card-img-top" 
+                        alt="{{ restaurant['Restaurant Name'] }}"
+                        onerror="this.src='/static/default-restaurant.jpg'">
+                    {% endif %}
                     <div class="card-body">
                         <h5 class="card-title">{{ restaurant['Restaurant Name'] }}</h5>
                         <div class="mb-2">
