@@ -2,6 +2,208 @@
 {% block title %}{{ restaurant['Restaurant Name'] }} - Zomato{% endblock %}
 
 {% block content %}
+<style>
+    :root {
+        --primary-color: #FF4B4B;
+        --secondary-color: #2D3748;
+        --background-color: #F7FAFC;
+        --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --transition: all 0.3s ease;
+      }
+      
+      body {
+        background-color: var(--background-color);
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        line-height: 1.5;
+      }
+      
+      .card {
+        border: none;
+        box-shadow: var(--card-shadow);
+        border-radius: 1rem;
+        margin-bottom: 2rem;
+        background: white;
+      }
+      
+      .card-body {
+        padding: 2rem;
+      }
+      
+      /* Restaurant Image */
+      .restaurant-image-container {
+        position: relative;
+        height: 400px;
+        overflow: hidden;
+        border-radius: 1rem 1rem 0 0;
+      }
+      
+      .restaurant-detail-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: var(--transition);
+      }
+      
+      .restaurant-detail-image:hover {
+        transform: scale(1.05);
+      }
+      
+      /* Breadcrumb */
+      .breadcrumb {
+        padding: 1rem 0;
+        margin-bottom: 1.5rem;
+        background: transparent;
+      }
+      
+      .breadcrumb-item a {
+        color: var(--primary-color);
+        text-decoration: none;
+        transition: var(--transition);
+      }
+      
+      .breadcrumb-item a:hover {
+        color: var(--secondary-color);
+      }
+      
+      .breadcrumb-item.active {
+        color: var(--secondary-color);
+      }
+      
+      /* Restaurant Title */
+      .card-title {
+        color: var(--secondary-color);
+        font-size: 2.25rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+      }
+      
+      /* Cuisine Tags */
+      .cuisine-tag {
+        display: inline-block;
+        background-color: #EDF2F7;
+        color: var(--secondary-color);
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        margin: 0 0.5rem 0.5rem 0;
+        font-size: 0.9rem;
+        transition: var(--transition);
+      }
+      
+      .cuisine-tag:hover {
+        background-color: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+      }
+      
+      /* Rating Section */
+      .rating-badge {
+        background-color: #48BB78;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+      
+      /* Details Table */
+      .table {
+        margin-bottom: 0;
+      }
+      
+      .table th,
+      .table td {
+        padding: 1rem;
+        border-color: #EDF2F7;
+        vertical-align: middle;
+      }
+      
+      .table th {
+        width: 40%;
+        color: var(--secondary-color);
+        font-weight: 600;
+      }
+      
+      /* Status Badges */
+      .badge {
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+      }
+      
+      .badge.bg-success {
+        background-color: #48BB78 !important;
+      }
+      
+      .badge.bg-secondary {
+        background-color: #718096 !important;
+      }
+      
+      /* Map Container */
+      #map {
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      
+      /* Price Range */
+      .price-range {
+        color: #48BB78;
+        font-weight: 600;
+      }
+      
+      /* Section Headers */
+      .card .card-title {
+        font-size: 1.5rem;
+        margin-bottom: 1.25rem;
+        color: var(--secondary-color);
+      }
+      
+      /* Responsive Design */
+      @media (max-width: 768px) {
+        .card-body {
+          padding: 1.5rem;
+        }
+      
+        .restaurant-image-container {
+          height: 250px;
+        }
+      
+        .card-title {
+          font-size: 1.8rem;
+        }
+      
+        .table th {
+          width: 50%;
+        }
+      }
+      
+      /* Container Layout */
+      .container, .container-fluid {
+        padding: 2rem 1rem;
+      }
+      
+      /* Text Colors */
+      .text-muted {
+        color: #64748B !important;
+      }
+      
+      /* Card Layout Spacing */
+      .row > [class*='col-'] {
+        margin-bottom: 1.5rem;
+      }
+      
+      .row > [class*='col-']:last-child {
+        margin-bottom: 0;
+      }
+      
+      @media (min-width: 768px) {
+        .row > [class*='col-'] {
+          margin-bottom: 0;
+        }
+      }
+</style>
 <div class="card">
     <div class="card-body">
         <nav aria-label="breadcrumb">
